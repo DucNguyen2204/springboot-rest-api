@@ -8,6 +8,7 @@ import com.example.springbootrestapi.payload.CommentDTO;
 import com.example.springbootrestapi.repository.CommentRepository;
 import com.example.springbootrestapi.repository.PostRepository;
 import com.example.springbootrestapi.service.CommentService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,12 +23,14 @@ public class CommentServiceImpl implements CommentService {
 
     @Autowired
     private PostRepository postRepository;
+    @Autowired
+    private ModelMapper modelMapper;
     @Override
     public CommentDTO createComment(long postId, CommentDTO commentDTO) {
         Comment comment = mapToEntity(commentDTO);
         // retrieve post entity by id
         Optional<Post> postOptional = postRepository.findById(postId);
-        if (postOptional.isPresent()){
+        if (postOptional.isPresent()) {
             Post post = postOptional.get();
             comment.setPost(post);
             Comment newComment = commentRepository.save(comment);
@@ -44,11 +47,12 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public CommentDTO getCommentById(long postId, long commentId) {
         Optional<Comment> commentOptional = commentRepository.findById(commentId);
-        if (commentOptional.isPresent()){
+        if (commentOptional.isPresent()) {
             Comment comment = commentOptional.get();
             if (comment.getPost().getId() == postId) return mapToDTO(comment);
-            else throw new CommentNotMatchPostException("Comment", "id" , String.valueOf(commentId), "Post", "id", String.valueOf(postId));
-        }else throw new ResourceNotFoundException("Comment", "id", String.valueOf(commentId));
+            else
+                throw new CommentNotMatchPostException("Comment", "id", String.valueOf(commentId), "Post", "id", String.valueOf(postId));
+        } else throw new ResourceNotFoundException("Comment", "id", String.valueOf(commentId));
     }
 
     @Override
@@ -62,25 +66,39 @@ public class CommentServiceImpl implements CommentService {
                 comment.setEmail(commentDTO.getMail());
                 Comment updatedComment = commentRepository.save(comment);
                 return mapToDTO(updatedComment);
-            } else throw new CommentNotMatchPostException("Comment", "id" , String.valueOf(commentId), "Post", "id", String.valueOf(postId));
-        }else throw new ResourceNotFoundException("Comment", "id", String.valueOf(commentId));
+            } else
+                throw new CommentNotMatchPostException("Comment", "id", String.valueOf(commentId), "Post", "id", String.valueOf(postId));
+        } else throw new ResourceNotFoundException("Comment", "id", String.valueOf(commentId));
+    }
+
+    @Override
+    public void deleteComment(long postId, long commentId) {
+        // retrieve comment by id
+        Optional<Comment> commentOptional = commentRepository.findById(commentId);
+        if (commentOptional.isPresent()) {
+            Comment comment = commentOptional.get();
+            if (comment.getPost().getId() == postId) {
+                commentRepository.deleteById(commentId);
+            } else
+                throw new CommentNotMatchPostException("Comment", "id", String.valueOf(commentId), "Post", "id", String.valueOf(postId));
+        } else throw new ResourceNotFoundException("Comment", "id", String.valueOf(commentId));
     }
 
     private CommentDTO mapToDTO(Comment comment) {
-        CommentDTO commentDTO = new CommentDTO();
-        commentDTO.setBody(comment.getBody());
-        commentDTO.setMail(comment.getEmail());
-        commentDTO.setName(comment.getName());
-        commentDTO.setId(comment.getId());
-        return commentDTO;
+//        CommentDTO commentDTO = new CommentDTO();
+//        commentDTO.setBody(comment.getBody());
+//        commentDTO.setMail(comment.getEmail());
+//        commentDTO.setName(comment.getName());
+//        commentDTO.setId(comment.getId());
+        return modelMapper.map(comment, CommentDTO.class);
     }
 
-    private Comment mapToEntity(CommentDTO commentDTO){
-        Comment comment = new Comment();
-        comment.setId(commentDTO.getId());
-        comment.setEmail(commentDTO.getMail());
-        comment.setName(commentDTO.getName());
-        comment.setBody(commentDTO.getBody());
-        return comment;
+    private Comment mapToEntity(CommentDTO commentDTO) {
+//        Comment comment = new Comment();
+//        comment.setId(commentDTO.getId());
+//        comment.setEmail(commentDTO.getMail());
+//        comment.setName(commentDTO.getName());
+//        comment.setBody(commentDTO.getBody());
+        return modelMapper.map(commentDTO, Comment.class);
     }
 }
