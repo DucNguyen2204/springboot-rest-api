@@ -20,14 +20,13 @@ public class JwtTokenProvider {
     private String jwtSecret;
 
     @Value("${app-jwt-expiration-milliseconds}")
-    private String jwtExpirationDate;
+    private long jwtExpirationDate;
 
     // generate JWT token
     public String generateToken(Authentication authentication) {
         String username = authentication.getName();
 
         Date currentDate = new Date();
-
         Date expireDate = new Date(currentDate.getTime() + jwtExpirationDate);
         String token = Jwts.builder()
                 .setSubject(username)

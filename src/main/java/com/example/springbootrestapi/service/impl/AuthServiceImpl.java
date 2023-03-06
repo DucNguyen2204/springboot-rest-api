@@ -8,6 +8,7 @@ import com.example.springbootrestapi.payload.LoginDTO;
 import com.example.springbootrestapi.payload.RegisterDTO;
 import com.example.springbootrestapi.repository.RoleRepository;
 import com.example.springbootrestapi.repository.UserRepository;
+import com.example.springbootrestapi.security.JwtTokenProvider;
 import com.example.springbootrestapi.service.AuthService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,9 @@ public class AuthServiceImpl implements AuthService {
     private AuthenticationManager authenticationManager;
 
     @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+
+    @Autowired
     private ModelMapper modelMapper;
 
     @Autowired
@@ -41,7 +45,9 @@ public class AuthServiceImpl implements AuthService {
                 loginDTO.getUsernameOrEmail(),loginDTO.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        return "User Logged-in successfully";
+
+        String token = jwtTokenProvider.generateToken(authentication);
+        return token;
     }
 
     @Override

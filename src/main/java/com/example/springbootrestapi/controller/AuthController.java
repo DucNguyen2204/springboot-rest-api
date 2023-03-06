@@ -1,5 +1,6 @@
 package com.example.springbootrestapi.controller;
 
+import com.example.springbootrestapi.payload.JWTAuthResponse;
 import com.example.springbootrestapi.payload.LoginDTO;
 import com.example.springbootrestapi.payload.RegisterDTO;
 import com.example.springbootrestapi.service.AuthService;
@@ -17,12 +18,15 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
-    @PostMapping("login")
-    public ResponseEntity<String> login(@RequestBody LoginDTO loginDTO){
-        return ResponseEntity.ok(authService.login(loginDTO));
+    @PostMapping(value = {"login", "signin"})
+    public ResponseEntity<JWTAuthResponse> login(@RequestBody LoginDTO loginDTO){
+        String token = authService.login(loginDTO);
+        JWTAuthResponse jwtAuthResponse = new JWTAuthResponse();
+        jwtAuthResponse.setAccessToken(token);
+        return ResponseEntity.ok(jwtAuthResponse);
     }
 
-    @PostMapping("register")
+    @PostMapping(value = {"register", "signup"})
     public ResponseEntity<RegisterDTO> register(@RequestBody RegisterDTO registerDTO){
         return new ResponseEntity<>(authService.register(registerDTO), HttpStatus.CREATED) ;
     }
